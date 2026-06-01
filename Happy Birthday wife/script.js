@@ -4,6 +4,51 @@ const ctx = confettiCanvas.getContext("2d");
 
 const UNLOCK_DATE = new Date(2026, 6, 23, 0, 0, 0);
 const preview = new URLSearchParams(window.location.search).get("preview") === "1";
+const fastPreview = new URLSearchParams(window.location.search).get("fast") === "1";
+const MIN_JOURNEY_SECONDS = fastPreview ? 20 : 300;
+
+const storyMoments = [
+  {
+    title: "2018-2021: Before us, we were becoming ourselves",
+    text: "Deepak went from Biomedical Engineering at SRM Chennai to sales, medical coding, Cognizant, VRCM/CorroHealth, and finally became a trainer in 2021. Dhanashree built her path from B.Pharm in Pune to Advantmed, work from home during Covid, and then CorroHealth as a medical coder."
+  },
+  {
+    title: "Chennai: the brave move",
+    text: "Dhanashree fought to convince her family, left Pune, came to a new city, stayed in a hostel, did not know Tamil, and joined CRC training. That batch became Deepak's first certification batch as a trainer."
+  },
+  {
+    title: "The first laugh",
+    text: "On the first day, after a sarcastic comment from someone else, Deepak said, \"Don't worry, I can speak English well and understand Hindi.\" Dhanashree laughed. A tiny moment, but apparently destiny likes comedy."
+  },
+  {
+    title: "The haircut message",
+    text: "A few weeks later, Deepak took one day off. Dhanashree messaged to ask why he had not come. He said he had gone for a haircut. From one simple message, the talking slowly became something more."
+  },
+  {
+    title: "Chapati, beach, and the beginning",
+    text: "After training, Deepak invited batchmates home. Dhanashree was the only girl, they cooked together, she made chapati in his kitchen, and later everyone went to the beach. After that, Deepak and Dhanashree started meeting more, talking more, and getting closer."
+  },
+  {
+    title: "Roommates before labels",
+    text: "When Dhanashree had to vacate her hostel, Deepak said his room had space. She said yes. They were not fully sure what the relationship was yet, but life quietly moved them closer."
+  },
+  {
+    title: "Choosing each other",
+    text: "Deepak used to get scared whenever Dhanashree went to Pune, afraid she might not come back. Then one day she went and returned. That gave him hope: she was choosing him too."
+  },
+  {
+    title: "Madhya Pradesh, Hyderabad, and hard days",
+    text: "They moved together for work, left before Diwali 2022, tried new jobs, started a training company, travelled to Hyderabad for a client, worked hard, got cheated, and were not paid. It hurt, but they faced it together."
+  },
+  {
+    title: "Mumbai, Pune weekends, and the UK",
+    text: "Mumbai made them stronger. Dhanashree enjoyed training, they went to Pune on weekends, met friends, ate pani puri, and enjoyed life. Deepak had once cancelled his UK plan because he feared losing her. In 2023, he tried again, and Dhanashree came to the UK five months later because being apart was not an option."
+  },
+  {
+    title: "Families, chaos, and 16 March 2026",
+    text: "They faced family worries, different states, languages, cultures, chickenpox delays, emotional talks, and big decisions. Finally, after Chennai, Madhya Pradesh, Hyderabad, Mumbai, Pune, and the UK, Deepak and Dhanashree got married on 16 March 2026. A Tamil-Marathi love story built on courage, risk, friendship, sacrifice, and choosing each other again and again."
+  }
+];
 
 const state = {
   round: 0,
@@ -11,7 +56,16 @@ const state = {
   meter: 12,
   confetti: [],
   gameClicks: 0,
-  lockedTimer: null
+  lockedTimer: null,
+  journeyStart: null,
+  journeyTimer: null,
+  journeyTasks: {
+    story: false,
+    hunt: false,
+    note: false,
+    pledge: false
+  },
+  loveNote: []
 };
 
 const rounds = [
@@ -447,7 +501,216 @@ function renderPuzzle() {
     puzzle.appendChild(block);
   });
 
-  document.getElementById("finishBtn").addEventListener("click", renderFinale);
+  document.getElementById("finishBtn").addEventListener("click", startBirthdayJourney);
+}
+
+function startBirthdayJourney() {
+  state.journeyStart = Date.now();
+  state.journeyTasks = {
+    story: false,
+    hunt: false,
+    note: false,
+    pledge: false
+  };
+  state.loveNote = [];
+  renderJourney("story");
+}
+
+function renderJourney(stage) {
+  if (state.journeyTimer) window.clearInterval(state.journeyTimer);
+  const tabs = [
+    ["story", "Our story"],
+    ["hunt", "Love hunt"],
+    ["note", "Love note"],
+    ["pledge", "Final promise"]
+  ];
+
+  app.innerHTML = `
+    <section class="stage">
+      <div class="panel result journey-panel">
+        <div class="journey-top">
+          <div>
+            <p class="eyebrow">Cake unlock mission</p>
+            <h2>Earn the cake, birthday queen.</h2>
+          </div>
+          <div class="journey-clock" aria-label="Cake unlock timer">
+            <strong id="journeyTime">5:00</strong>
+            <span>until cake</span>
+          </div>
+        </div>
+        <div class="journey-tabs">
+          ${tabs.map(([id, label]) => `<button class="journey-tab ${id === stage ? "active" : ""}" data-stage="${id}">${label}</button>`).join("")}
+        </div>
+        <div id="journeyBody"></div>
+        <div class="journey-unlock">
+          <div class="tease-meter"><span id="journeyProgress"></span></div>
+          <button class="btn" id="cakeUnlockBtn" disabled>Complete missions and wait for cake</button>
+        </div>
+      </div>
+    </section>
+  `;
+
+  document.querySelectorAll(".journey-tab").forEach((tab) => {
+    tab.addEventListener("click", () => renderJourney(tab.dataset.stage));
+  });
+
+  if (stage === "story") renderStoryStage();
+  if (stage === "hunt") renderLoveHuntStage();
+  if (stage === "note") renderLoveNoteStage();
+  if (stage === "pledge") renderPledgeStage();
+
+  document.getElementById("cakeUnlockBtn").addEventListener("click", renderFinale);
+  updateJourneyUnlock();
+  state.journeyTimer = window.setInterval(updateJourneyUnlock, 1000);
+}
+
+function renderStoryStage() {
+  const body = document.getElementById("journeyBody");
+  body.innerHTML = `
+    <p>Open at least 5 chapters of your Tamil-Marathi love story. Yes, this is emotional homework. No, HR cannot help.</p>
+    <div class="story-path">
+      ${storyMoments.map((moment, index) => `
+        <article class="story-card ${index === 0 ? "open viewed" : ""}">
+          <button class="story-toggle" type="button">${moment.title}</button>
+          <p>${moment.text}</p>
+        </article>
+      `).join("")}
+    </div>
+    <p id="storyStatus">Chapters opened: 1/${storyMoments.length}. Minimum required because husband is sentimental: 5.</p>
+    <div class="actions">
+      <button class="btn" id="storyDone" disabled>I read the evidence</button>
+    </div>
+  `;
+
+  const updateStoryProgress = () => {
+    const opened = document.querySelectorAll(".story-card.viewed").length;
+    document.getElementById("storyStatus").textContent = `Chapters opened: ${opened}/${storyMoments.length}. Minimum required because husband is sentimental: 5.`;
+    document.getElementById("storyDone").disabled = opened < 5;
+  };
+
+  document.querySelectorAll(".story-toggle").forEach((button) => {
+    button.addEventListener("click", () => {
+      const card = button.closest(".story-card");
+      card.classList.toggle("open");
+      card.classList.add("viewed");
+      updateStoryProgress();
+      burst(18);
+    });
+  });
+  document.getElementById("storyDone").addEventListener("click", () => {
+    state.journeyTasks.story = true;
+    popNote("Story filed under: adorable", document.getElementById("storyDone"));
+    renderJourney("hunt");
+  });
+}
+
+function renderLoveHuntStage() {
+  const body = document.getElementById("journeyBody");
+  body.innerHTML = `
+    <p>Catch 12 floating reasons I love you. They are moving because compliments get shy.</p>
+    <div class="love-hunt" id="loveHunt"></div>
+    <p id="huntStatus">Reasons caught: 0/12</p>
+  `;
+
+  const arena = document.getElementById("loveHunt");
+  let caught = 0;
+  const reasons = ["smile", "kindness", "laugh", "eyes", "patience", "spark", "warmth", "magic", "style", "heart", "chaos", "home"];
+  reasons.forEach((reason, index) => {
+    const token = document.createElement("button");
+    token.className = "reason-token";
+    token.textContent = reason;
+    token.style.left = `${8 + Math.random() * 78}%`;
+    token.style.top = `${10 + Math.random() * 70}%`;
+    token.style.animationDelay = `${index * 90}ms`;
+    arena.appendChild(token);
+    token.addEventListener("click", () => {
+      token.classList.add("caught");
+      token.disabled = true;
+      caught += 1;
+      document.getElementById("huntStatus").textContent = `Reasons caught: ${caught}/12`;
+      if (caught === reasons.length) {
+        state.journeyTasks.hunt = true;
+        burst(80);
+        window.setTimeout(() => renderJourney("note"), 500);
+      }
+    });
+  });
+}
+
+function renderLoveNoteStage() {
+  const body = document.getElementById("journeyBody");
+  const words = ["beautiful", "funny", "brave", "soft-hearted", "my favourite person", "birthday queen", "chaos manager", "my home"];
+  body.innerHTML = `
+    <p>Build a tiny love note by choosing 4 words. I will pretend this was a very serious writing workshop.</p>
+    <div class="word-bank">
+      ${words.map((word) => `<button class="btn secondary word-chip" type="button">${word}</button>`).join("")}
+    </div>
+    <div class="love-note-preview" id="notePreview">Dear wife, you are ...</div>
+    <div class="actions">
+      <button class="btn" id="noteDone" disabled>Seal the note</button>
+    </div>
+  `;
+
+  document.querySelectorAll(".word-chip").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.classList.contains("leaf")) return;
+      if (state.loveNote.length >= 4) return;
+      button.classList.remove("secondary");
+      button.classList.add("leaf");
+      state.loveNote.push(button.textContent);
+      document.getElementById("notePreview").textContent = `Dear wife, you are ${state.loveNote.join(", ")}. Also, please accept this browser as a romantic envelope.`;
+      document.getElementById("noteDone").disabled = state.loveNote.length < 4;
+    });
+  });
+
+  document.getElementById("noteDone").addEventListener("click", () => {
+    state.journeyTasks.note = true;
+    burst(55);
+    renderJourney("pledge");
+  });
+}
+
+function renderPledgeStage() {
+  const body = document.getElementById("journeyBody");
+  body.innerHTML = `
+    <div class="pledge-card">
+      <p>I promise more little dates, more silly jokes, more patient listening, more surprise plans, and more love than my dramatic buttons can express.</p>
+      <label class="pledge-check">
+        <input type="checkbox" id="pledgeCheck">
+        <span>I accept this legally questionable but emotionally binding birthday promise.</span>
+      </label>
+    </div>
+  `;
+
+  document.getElementById("pledgeCheck").addEventListener("change", (event) => {
+    state.journeyTasks.pledge = event.target.checked;
+    if (event.target.checked) {
+      burst(60);
+      popNote("Promise accepted", event.target);
+    }
+    updateJourneyUnlock();
+  });
+}
+
+function updateJourneyUnlock() {
+  const elapsed = Math.floor((Date.now() - state.journeyStart) / 1000);
+  const remaining = Math.max(0, MIN_JOURNEY_SECONDS - elapsed);
+  const minutes = Math.floor(remaining / 60);
+  const seconds = String(remaining % 60).padStart(2, "0");
+  const doneCount = Object.values(state.journeyTasks).filter(Boolean).length;
+  const timeDone = remaining === 0;
+  const allDone = doneCount === 4;
+  const progress = Math.min(100, Math.round(((doneCount / 4) * 55) + ((MIN_JOURNEY_SECONDS - remaining) / MIN_JOURNEY_SECONDS) * 45));
+  const timer = document.getElementById("journeyTime");
+  const fill = document.getElementById("journeyProgress");
+  const button = document.getElementById("cakeUnlockBtn");
+  if (!timer || !fill || !button) return;
+  timer.textContent = `${minutes}:${seconds}`;
+  fill.style.width = `${progress}%`;
+  button.disabled = !(timeDone && allDone);
+  button.textContent = allDone
+    ? timeDone ? "Cake permission granted" : `Cake unlocks in ${minutes}:${seconds}`
+    : `Complete missions (${doneCount}/4)`;
 }
 
 function renderFinale() {

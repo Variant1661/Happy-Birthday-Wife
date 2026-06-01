@@ -348,6 +348,197 @@ p {
   gap: 20px;
 }
 
+.journey-panel {
+  gap: 22px;
+}
+
+.journey-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: start;
+}
+
+.journey-clock {
+  min-width: 122px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.68);
+  text-align: center;
+  box-shadow: 0 12px 24px rgba(48, 22, 36, 0.1);
+}
+
+.journey-clock strong {
+  display: block;
+  color: var(--rose);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.journey-clock span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.journey-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.journey-tab {
+  min-height: 44px;
+  border: 1px solid rgba(204, 63, 103, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.76);
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.journey-tab.active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--rose), var(--coral));
+  box-shadow: 0 12px 24px rgba(204, 63, 103, 0.2);
+}
+
+#journeyBody {
+  min-height: 330px;
+}
+
+.journey-unlock {
+  display: grid;
+  gap: 12px;
+}
+
+.story-path {
+  display: grid;
+  gap: 12px;
+  max-height: 430px;
+  overflow: auto;
+  padding-right: 6px;
+}
+
+.story-card {
+  border: 1px solid rgba(47, 139, 113, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  overflow: hidden;
+  position: relative;
+}
+
+.story-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: linear-gradient(180deg, var(--rose), var(--gold), var(--leaf));
+  opacity: 0.4;
+}
+
+.story-card.viewed::before {
+  opacity: 1;
+}
+
+.story-toggle {
+  width: 100%;
+  border: 0;
+  padding: 16px 18px 16px 24px;
+  text-align: left;
+  color: var(--ink);
+  background: transparent;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.story-card p {
+  display: none;
+  margin: 0;
+  padding: 0 18px 18px 24px;
+}
+
+.story-card.open p {
+  display: block;
+  animation: fadeIn 240ms ease;
+}
+
+.love-hunt {
+  position: relative;
+  min-height: 300px;
+  border: 2px dashed rgba(47, 139, 113, 0.22);
+  border-radius: 12px;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.28)),
+    radial-gradient(circle at 70% 24%, rgba(255, 209, 102, 0.22), transparent 15rem);
+}
+
+.reason-token {
+  position: absolute;
+  min-width: 76px;
+  min-height: 42px;
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--leaf), var(--coral));
+  box-shadow: 0 16px 28px rgba(47, 139, 113, 0.2);
+  cursor: pointer;
+  font-weight: 900;
+  animation: tokenDance 2s ease-in-out infinite alternate;
+}
+
+.reason-token.caught {
+  opacity: 0;
+  transform: scale(1.6) rotate(18deg);
+  pointer-events: none;
+  transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.word-bank,
+.cake-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.word-chip {
+  min-height: 46px;
+}
+
+.love-note-preview,
+.pledge-card {
+  padding: clamp(18px, 3vw, 26px);
+  border-radius: 12px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(255, 248, 236, 0.72)),
+    radial-gradient(circle at 100% 0, rgba(239, 113, 93, 0.14), transparent 14rem);
+  border: 1px solid rgba(204, 63, 103, 0.16);
+  color: var(--ink);
+  font-size: 1.08rem;
+  line-height: 1.65;
+}
+
+.pledge-check {
+  display: flex;
+  gap: 12px;
+  align-items: start;
+  color: var(--ink);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.pledge-check input {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  accent-color: var(--rose);
+}
+
 .flower-field {
   min-height: 180px;
   display: flex;
@@ -605,6 +796,24 @@ p {
   }
 }
 
+@keyframes tokenDance {
+  to {
+    transform: translateY(-16px) translateX(10px) rotate(5deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes smoke {
   to {
     opacity: 0;
@@ -657,5 +866,21 @@ p {
 
   .countdown {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .journey-top {
+    display: grid;
+  }
+
+  .journey-clock {
+    width: 100%;
+  }
+
+  .journey-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #journeyBody {
+    min-height: 360px;
   }
 }
